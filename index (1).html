@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generator podataka za psihologiju</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow column, like a lab handout; data tables scroll on their own. */
+:root {
+  --bg: #f4f5f2;
+  --surface: #ffffff;
+  --ink: #1d2a33;
+  --muted: #5b6770;
+  --line: #d9ddd6;
+  --accent: #2f5d7c;
+  --accent-ink: #ffffff;
+  --mark: #c98a1b;
+  --display: "Newsreader", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141a1f; --surface: #1c242a; --ink: #e4e8e6; --muted: #9aa6ad;
+    --line: #2e3a42; --accent: #7fb3d6; --accent-ink: #0f1a22; --mark: #e2b25a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141a1f; --surface: #1c242a; --ink: #e4e8e6; --muted: #9aa6ad;
+  --line: #2e3a42; --accent: #7fb3d6; --accent-ink: #0f1a22; --mark: #e2b25a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 64px; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 5vw, 42px); }
+h2 { font-size: 24px; }
+h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+.lede { color: var(--muted); font-size: 18px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px; display: grid; gap: 16px; }
+form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.field { display: grid; gap: 6px; flex: 1 1 260px; }
+label { font-weight: 500; font-size: 14px; }
+input[type=text] { font: 18px var(--mono); padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); width: 100%; }
+input[type=text]:focus-visible, button:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+button { font: 600 16px var(--body); padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent); cursor: pointer; }
+.primary { background: var(--accent); color: var(--accent-ink); }
+.secondary { background: transparent; color: var(--accent); }
+button:hover { filter: brightness(1.08); }
+.hint { font-size: 14px; color: var(--muted); }
+.error { color: #b3261e; font-size: 14px; min-height: 1em; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 0; margin: 0; list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; gap: 4px; }
+.steps li::before { content: counter(s); font: 600 14px var(--mono); color: var(--mark); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 13px var(--mono); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); }
+.chip b { color: var(--accent); font-weight: 600; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.status { font-size: 14px; color: var(--muted); }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { background: var(--bg); font-weight: 600; white-space: nowrap; }
+.data td, .data th { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.data td.na { color: var(--muted); }
+code { font-family: var(--mono); font-size: .92em; }
+ol.rq { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 70ch; }
+.tag { display: inline-block; font: 600 12px var(--mono); color: var(--accent); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; margin-right: 4px; }
+.note { border-left: 3px solid var(--mark); padding: 4px 0 4px 14px; color: var(--ink); }
+[hidden] { display: none !important; }
+footer { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { #result:not([hidden]) { animation: rise .25s ease-out; } }
+@keyframes rise { from { transform: translateY(6px); } to { transform: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header style="display:grid;gap:10px">
+    <h3>Analiza podataka u psihologiji</h3>
+    <h1>Preuzmi svoje podatke</h1>
+    <p class="lede">Svaki student dobija sopstvenu matricu koju analizira i opisuje u radu. Unesi broj indeksa i pritisni dugme. Isti broj indeksa uvek daje iste podatke, pa možeš da se vratiš i ponovo ih preuzmeš.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="gen-h">
+    <h2 id="gen-h" style="font-size:20px">Generisanje</h2>
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="sid">Broj indeksa</label>
+        <input id="sid" type="text" autocomplete="off" spellcheck="false" placeholder="npr. 12200/24">
+      </div>
+      <button class="primary" type="submit" id="go">Generiši matricu</button>
+    </form>
+    <p class="error" id="err" role="alert"></p>
+    <ol class="steps">
+      <li><strong>Istraživanje</strong><span class="hint">Dodeljuje ti se tema istraživanja sa sopstvenim konstruktima i mernim instrumentima.</span></li>
+      <li><strong>Tvoji podaci</strong><span class="hint">Jedinstven uzorak. Varijable, veličina uzorka i veličine efekata razlikuju se od studenta do studenta.</span></li>
+      <li><strong>Šifarnik</strong><span class="hint">Opis svake varijable i pitanja za t-test, korelacije, regresiju i ANOVU.</span></li>
+    </ol>
+  </section>
+
+  <section id="result" class="panel" hidden aria-live="polite">
+    <div style="display:grid;gap:8px">
+      <h3>Tvoje istraživanje</h3>
+      <h2 id="r-title"></h2>
+    </div>
+    <div class="chips" id="r-chips"></div>
+    <p id="r-context"></p>
+    <div class="actions">
+      <button class="primary" type="button" id="dl-csv">Preuzmi podatke (.csv)</button>
+      <button class="secondary" type="button" id="dl-cb">Preuzmi šifarnik (.txt)</button>
+      <button class="secondary" type="button" id="copy">Kopiraj CSV</button>
+      <span class="status" id="dl-status"></span>
+    </div>
+
+    <h3>Šifarnik</h3>
+    <div class="scroll"><table id="r-codebook"></table></div>
+
+    <h3>Prvih 10 redova</h3>
+    <div class="scroll"><table class="data" id="r-preview"></table></div>
+
+    <h3>Istraživačka pitanja i analize</h3>
+    <ol class="rq" id="r-rq"></ol>
+    <p class="hint">Svako pitanje odgovara jednoj analizi. Možeš postaviti i dodatna pitanja, ako podaci mogu da odgovore na njih.</p>
+  </section>
+
+  <footer>Podaci su simulirani za potrebe nastave, a ispitanici su izmišljeni. Ovi podaci će prvenstveno biti korišćeni za izradu seminarskih radova. Svaka matrica podataka je vezana za broj indeksa koji je unet. Nije dozvoljeno unošenje bilo kog drugog broja, osim tvog indeksa. Takođe, svaka matrica ima sopstvenu šifru koja se nalazi u šifarniku. Ovo je takođe potrebno navesti prilikom predaje seminarskog rada, kako bismo mogli proveriti da li su analize tačno sprovedene.</footer>
+</main>
+
+<script>
+/* ---------- Podešavanja za nastavnika ---------- */
+const CONFIG = {
+  course: "PSY-DATA-ANALYSIS",   // promena ove vrednosti daje svim studentima nove podatke (npr. sledeće godine)
+  nMin: 120, nMax: 240,
+  interactionShare: 0.95,         // udeo skupova u kojima je interakcija A × B značajna
+  maxR: 0.60                      // nijedna korelacija (prediktor–kriterijum ni prediktor–prediktor) ne prelazi ovu vrednost
+};
+
+/* ---------- Seeded random numbers ---------- */
+function hashStr(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return [h1 >>> 0, h2 >>> 0];
+}
+function makeRng(seed) {
+  let a = seed >>> 0, spare = null;
+  const u = () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const norm = (m = 0, s = 1) => {
+    if (spare !== null) { const v = spare; spare = null; return m + s * v; }
+    let x, y, r;
+    do { x = u() * 2 - 1; y = u() * 2 - 1; r = x * x + y * y; } while (r === 0 || r >= 1);
+    const f = Math.sqrt(-2 * Math.log(r) / r);
+    spare = y * f;
+    return m + s * x * f;
+  };
+  return {
+    u, norm,
+    int: (lo, hi) => lo + Math.floor(u() * (hi - lo + 1)),
+    pick: arr => arr[Math.floor(u() * arr.length)],
+    chance: p => u() < p,
+    sign: () => (u() < 0.5 ? -1 : 1),
+    // veličina efekta u [lo, hi]; otprilike svaki peti je skoro nula, pa se neke hipoteze ne potvrđuju
+    eff: (lo, hi) => { const v = lo + u() * (hi - lo); return u() < 0.2 ? v * u() * 0.25 : v; }
+  };
+}
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+
+/* ---------- Teme: prediktori (sign = smer efekta na kriterijum) i kriterijum ----------
+   t: "mean" = prosečan skor na k stavki, "sum" = ukupan skor, "dec" = broj sa decimalama */
+const THEMES = [
+  {
+    id: "big5", sample: "odrasli",
+    title: "Crte ličnosti velikih pet i subjektivno blagostanje",
+    context: "Odrasli ispitanici popunili su kratku verziju Upitnika velikih pet (BFI-2-S) i Skalu subjektivnog blagostanja. Cilj istraživanja je da se ispita kako su crte ličnosti povezane sa doživljajem blagostanja.",
+    preds: [
+      { v: "ekstraverzija", l: "Ekstraverzija", d: "BFI-2-S, 6 stavki", t: "mean", lo: 1, hi: 5, k: 6, m: 3.3, s: 0.7, sign: 1 },
+      { v: "prijatnost", l: "Prijatnost", d: "BFI-2-S, 6 stavki", t: "mean", lo: 1, hi: 5, k: 6, m: 3.8, s: 0.55, sign: 1 },
+      { v: "savesnost", l: "Savesnost", d: "BFI-2-S, 6 stavki", t: "mean", lo: 1, hi: 5, k: 6, m: 3.6, s: 0.65, sign: 1 },
+      { v: "neuroticizam", l: "Neuroticizam", d: "BFI-2-S, 6 stavki", t: "mean", lo: 1, hi: 5, k: 6, m: 2.9, s: 0.8, sign: -1 },
+      { v: "otvorenost", l: "Otvorenost", d: "BFI-2-S, 6 stavki", t: "mean", lo: 1, hi: 5, k: 6, m: 3.7, s: 0.6, sign: 1 }
+    ],
+    y: { v: "subjektivno_blagostanje", l: "Subjektivno blagostanje", d: "Skala subjektivnog blagostanja, 10 stavki; viši skor = veće blagostanje", t: "mean", lo: 1, hi: 7, k: 10, m: 4.8, s: 1.0 }
+  },
+  {
+    id: "bpn", sample: "studenti",
+    title: "Bazične psihološke potrebe i zadovoljstvo životom",
+    context: "Studenti su popunili Skalu zadovoljenja i frustracije bazičnih psiholoških potreba (BPNSFS) i Skalu zadovoljstva životom (SWLS). Istraživanje polazi od teorije samoodređenja i ispituje da li zadovoljenje potreba za autonomijom, povezanošću i kompetentnošću doprinosi zadovoljstvu životom.",
+    preds: [
+      { v: "autonomija", l: "Zadovoljenje potrebe za autonomijom", d: "BPNSFS, 4 stavke", t: "mean", lo: 1, hi: 5, k: 4, m: 3.6, s: 0.7, sign: 1 },
+      { v: "povezanost", l: "Zadovoljenje potrebe za povezanošću", d: "BPNSFS, 4 stavke", t: "mean", lo: 1, hi: 5, k: 4, m: 3.9, s: 0.7, sign: 1 },
+      { v: "kompetentnost", l: "Zadovoljenje potrebe za kompetentnošću", d: "BPNSFS, 4 stavke", t: "mean", lo: 1, hi: 5, k: 4, m: 3.7, s: 0.7, sign: 1 },
+      { v: "frustracija_potreba", l: "Frustracija potreba", d: "BPNSFS, 12 stavki", t: "mean", lo: 1, hi: 5, k: 12, m: 2.4, s: 0.7, sign: -1 }
+    ],
+    y: { v: "zadovoljstvo_zivotom", l: "Zadovoljstvo životom", d: "SWLS, 5 stavki, odgovori 1–7; viši skor = veće zadovoljstvo", t: "sum", lo: 5, hi: 35, m: 23, s: 6 }
+  },
+  {
+    id: "erq", sample: "odrasli",
+    title: "Kognitivna regulacija emocija, optimizam i stres",
+    context: "Odrasli ispitanici popunili su Upitnik kognitivne regulacije emocija (CERQ), Test životne orijentacije (LOT-R), subskalu ruminacije (RRS) i subskalu stresa iz skale DASS-21. Ispituje se koje kognitivne strategije i crte su povezane sa doživljajem stresa.",
+    preds: [
+      { v: "stavljanje_u_perspektivu", l: "Stavljanje u perspektivu", d: "CERQ, 4 stavke, odgovori 1–5", t: "sum", lo: 4, hi: 20, m: 12, s: 3.5, sign: -1 },
+      { v: "katastrofiziranje", l: "Katastrofiziranje", d: "CERQ, 4 stavke, odgovori 1–5", t: "sum", lo: 4, hi: 20, m: 9, s: 3.5, sign: 1 },
+      { v: "optimizam", l: "Optimizam", d: "LOT-R, 6 stavki, odgovori 0–4", t: "sum", lo: 0, hi: 24, m: 15, s: 4, sign: -1 },
+      { v: "ruminacija", l: "Ruminacija", d: "RRS, subskala razmišljanja, 5 stavki, odgovori 1–4", t: "sum", lo: 5, hi: 20, m: 11, s: 3, sign: 1 }
+    ],
+    y: { v: "stres", l: "Stres", d: "DASS-21, subskala stresa, zbir × 2; viši skor = više stresa", t: "sum", lo: 0, hi: 42, m: 14, s: 8, step: 2 }
+  },
+  {
+    id: "acad", sample: "studenti",
+    title: "Akademska motivacija, prokrastinacija i uspeh na studijama",
+    context: "Studenti su popunili Skalu akademske motivacije (AMS) i Takmanovu skalu prokrastinacije, a prosečna ocena preuzeta je iz studentske službe uz njihovu saglasnost.",
+    preds: [
+      { v: "intrinzicka_motivacija", l: "Intrinzička motivacija", d: "AMS, 12 stavki", t: "mean", lo: 1, hi: 7, k: 12, m: 4.9, s: 1.1, sign: 1 },
+      { v: "ekstrinzicka_motivacija", l: "Ekstrinzička motivacija", d: "AMS, 12 stavki", t: "mean", lo: 1, hi: 7, k: 12, m: 5.0, s: 1.0, sign: 1 },
+      { v: "amotivacija", l: "Amotivacija", d: "AMS, 4 stavke", t: "mean", lo: 1, hi: 7, k: 4, m: 2.0, s: 1.1, sign: -1 },
+      { v: "prokrastinacija", l: "Prokrastinacija", d: "Takmanova skala, 16 stavki, odgovori 1–4", t: "sum", lo: 16, hi: 64, m: 38, s: 9, sign: -1 }
+    ],
+    y: { v: "prosek_ocena", l: "Prosečna ocena", d: "prosečna ocena na studijama", t: "dec", lo: 6, hi: 10, dp: 2, m: 8.2, s: 0.8 }
+  },
+  {
+    id: "dark", sample: "studenti",
+    title: "Mračna trijada, empatija i agresivnost",
+    context: "Studenti su popunili Kratku skalu mračne trijade (SD3), Osnovnu skalu empatije (BES) i kratku verziju Upitnika agresivnosti Basa i Perija (BPAQ-SF). Ispituje se u kojoj meri mračne crte ličnosti i empatija objašnjavaju agresivnost.",
+    preds: [
+      { v: "makijavelizam", l: "Makijavelizam", d: "SD3, 9 stavki", t: "mean", lo: 1, hi: 5, k: 9, m: 2.9, s: 0.6, sign: 1 },
+      { v: "narcizam", l: "Narcizam", d: "SD3, 9 stavki", t: "mean", lo: 1, hi: 5, k: 9, m: 2.8, s: 0.6, sign: 1 },
+      { v: "psihopatija", l: "Psihopatija", d: "SD3, 9 stavki", t: "mean", lo: 1, hi: 5, k: 9, m: 2.2, s: 0.6, sign: 1 },
+      { v: "empatija", l: "Empatija", d: "BES, 20 stavki", t: "mean", lo: 1, hi: 5, k: 20, m: 3.7, s: 0.5, sign: -1 }
+    ],
+    y: { v: "agresivnost", l: "Agresivnost", d: "BPAQ-SF, 12 stavki, odgovori 1–5; viši skor = veća agresivnost", t: "sum", lo: 12, hi: 60, m: 29, s: 8 }
+  },
+  {
+    id: "attach", sample: "par",
+    title: "Afektivna vezanost, samopoštovanje i zadovoljstvo partnerskom vezom",
+    context: "Odrasli ispitanici koji su u partnerskoj vezi najmanje šest meseci popunili su upitnik Iskustva u bliskim odnosima (ECR-R), Rozenbergovu skalu samopoštovanja, kratku skalu učestalosti konflikata i Skalu procene odnosa (RAS).",
+    preds: [
+      { v: "anksioznost_vezanosti", l: "Anksioznost u vezanosti", d: "ECR-R, 18 stavki", t: "mean", lo: 1, hi: 7, k: 18, m: 3.4, s: 1.1, sign: -1 },
+      { v: "izbegavanje_vezanosti", l: "Izbegavanje u vezanosti", d: "ECR-R, 18 stavki", t: "mean", lo: 1, hi: 7, k: 18, m: 2.8, s: 1.0, sign: -1 },
+      { v: "samopostovanje", l: "Samopoštovanje", d: "Rozenbergova skala, 10 stavki, odgovori 1–4", t: "sum", lo: 10, hi: 40, m: 30, s: 5, sign: 1 },
+      { v: "konflikti", l: "Učestalost konflikata u vezi", d: "5 stavki", t: "mean", lo: 1, hi: 5, k: 5, m: 2.4, s: 0.7, sign: -1 }
+    ],
+    y: { v: "zadovoljstvo_vezom", l: "Zadovoljstvo partnerskom vezom", d: "RAS, 7 stavki; viši skor = veće zadovoljstvo", t: "mean", lo: 1, hi: 5, k: 7, m: 3.9, s: 0.7 }
+  },
+  {
+    id: "burn", sample: "zaposleni",
+    title: "Zahtevi i resursi posla i sagorevanje",
+    context: "Zaposleni iz različitih organizacija popunili su upitnike o radnom opterećenju, autonomiji na poslu i podršci kolega, naveli koliko sati nedeljno rade i popunili Oldenburški upitnik sagorevanja (OLBI). Istraživanje se oslanja na model zahteva i resursa posla.",
+    preds: [
+      { v: "radno_opterecenje", l: "Radno opterećenje", d: "6 stavki", t: "mean", lo: 1, hi: 5, k: 6, m: 3.4, s: 0.7, sign: 1 },
+      { v: "autonomija_na_poslu", l: "Autonomija na poslu", d: "5 stavki", t: "mean", lo: 1, hi: 5, k: 5, m: 3.3, s: 0.8, sign: -1 },
+      { v: "podrska_kolega", l: "Podrška kolega", d: "4 stavke", t: "mean", lo: 1, hi: 5, k: 4, m: 3.7, s: 0.8, sign: -1 },
+      { v: "radni_sati", l: "Radni sati nedeljno", d: "prosečan broj radnih sati nedeljno", t: "sum", lo: 20, hi: 70, m: 42, s: 7, sign: 1 }
+    ],
+    y: { v: "sagorevanje", l: "Sagorevanje", d: "OLBI, 16 stavki; viši skor = izraženije sagorevanje", t: "mean", lo: 1, hi: 4, k: 16, m: 2.5, s: 0.45 }
+  },
+  {
+    id: "perf", sample: "studenti",
+    title: "Perfekcionizam, samosaosećanje i anksioznost",
+    context: "Studenti su popunili Višedimenzionalnu skalu perfekcionizma (MPS), kratku Skalu samosaosećanja (SCS-SF), Skalu netolerancije neizvesnosti (IUS-12) i upitnik anksioznosti GAD-7.",
+    preds: [
+      { v: "samoorijentisani_perf", l: "Samoorijentisani perfekcionizam", d: "MPS, 15 stavki", t: "mean", lo: 1, hi: 7, k: 15, m: 4.6, s: 1.0, sign: 1 },
+      { v: "socijalno_propisani_perf", l: "Socijalno propisani perfekcionizam", d: "MPS, 15 stavki", t: "mean", lo: 1, hi: 7, k: 15, m: 3.8, s: 1.0, sign: 1 },
+      { v: "samosaosecanje", l: "Samosaosećanje", d: "SCS-SF, 12 stavki", t: "mean", lo: 1, hi: 5, k: 12, m: 3.0, s: 0.65, sign: -1 },
+      { v: "netolerancija_neizvesnosti", l: "Netolerancija neizvesnosti", d: "IUS-12, 12 stavki, odgovori 1–5", t: "sum", lo: 12, hi: 60, m: 33, s: 9, sign: 1 }
+    ],
+    y: { v: "anksioznost", l: "Anksioznost", d: "GAD-7; 5/10/15 = blaga/umerena/teška anksioznost", t: "sum", lo: 0, hi: 21, m: 7, s: 4.5 }
+  },
+  {
+    id: "phone", sample: "studenti",
+    title: "Upotreba mobilnog telefona i kvalitet sna",
+    context: "Studenti su popunili kratku Skalu zavisnosti od pametnog telefona (SAS-SV), Skalu straha od propuštanja (FoMO), kratku UCLA skalu usamljenosti i Pitsburški indeks kvaliteta sna (PSQI), i naveli koliko sati nedeljno su fizički aktivni.",
+    preds: [
+      { v: "problematicna_upotreba", l: "Problematična upotreba telefona", d: "SAS-SV, 10 stavki, odgovori 1–6", t: "sum", lo: 10, hi: 60, m: 30, s: 9, sign: 1 },
+      { v: "fomo", l: "Strah od propuštanja (FoMO)", d: "FoMOs, 10 stavki", t: "mean", lo: 1, hi: 5, k: 10, m: 2.6, s: 0.7, sign: 1 },
+      { v: "usamljenost", l: "Usamljenost", d: "UCLA-3, 3 stavke, odgovori 1–3", t: "sum", lo: 3, hi: 9, m: 5.5, s: 1.6, sign: 1 },
+      { v: "fizicka_aktivnost", l: "Fizička aktivnost", d: "sati nedeljno", t: "dec", lo: 0, hi: 20, dp: 1, m: 4, s: 3, sign: -1 }
+    ],
+    y: { v: "los_kvalitet_sna", l: "Loš kvalitet sna", d: "PSQI ukupan skor; viši skor = lošiji san, > 5 = loš san", t: "sum", lo: 0, hi: 21, m: 6.5, s: 3.3 }
+  }
+];
+
+/* ---------- Teorijska očekivanja po temi ----------
+   yGood: +1 ako viši kriterijum znači bolju prilagođenost, -1 ako lošiju
+   b: raspon apsolutne jačine efekta prediktora (smer je u THEMES.sign)
+   pol: smer razlike žene − muškarci na kriterijumu (0 = nema očekivane razlike)
+   f: razlika žene − muškarci na prediktorima (u SD), prema nalazima iz literature */
+const PRIORS = {
+  big5: { yGood: 1, pol: 0,
+    b: { ekstraverzija: [0.15, 0.35], prijatnost: [0.05, 0.2], savesnost: [0.1, 0.25], neuroticizam: [0.25, 0.5], otvorenost: [0.02, 0.12] },
+    f: { neuroticizam: 0.35, prijatnost: 0.3, ekstraverzija: 0.05, savesnost: 0.1, otvorenost: 0 } },
+  bpn: { yGood: 1, pol: 0,
+    b: { autonomija: [0.1, 0.3], povezanost: [0.15, 0.35], kompetentnost: [0.1, 0.3], frustracija_potreba: [0.15, 0.35] },
+    f: { povezanost: 0.15 } },
+  erq: { yGood: -1, pol: 1,
+    b: { stavljanje_u_perspektivu: [0.05, 0.2], katastrofiziranje: [0.15, 0.35], optimizam: [0.15, 0.35], ruminacija: [0.15, 0.4] },
+    f: { katastrofiziranje: 0.2, ruminacija: 0.25, optimizam: -0.05 } },
+  acad: { yGood: 1, pol: 1,
+    b: { intrinzicka_motivacija: [0.15, 0.35], ekstrinzicka_motivacija: [0.02, 0.12], amotivacija: [0.1, 0.3], prokrastinacija: [0.15, 0.35] },
+    f: { intrinzicka_motivacija: 0.15, amotivacija: -0.2, prokrastinacija: -0.15 } },
+  dark: { yGood: -1, pol: -1,
+    b: { makijavelizam: [0.1, 0.25], narcizam: [0.05, 0.2], psihopatija: [0.25, 0.45], empatija: [0.1, 0.3] },
+    f: { makijavelizam: -0.3, narcizam: -0.2, psihopatija: -0.5, empatija: 0.5 } },
+  attach: { yGood: 1, pol: 0,
+    b: { anksioznost_vezanosti: [0.1, 0.3], izbegavanje_vezanosti: [0.2, 0.4], samopostovanje: [0.05, 0.2], konflikti: [0.2, 0.4] },
+    f: { anksioznost_vezanosti: 0.1, izbegavanje_vezanosti: -0.1 } },
+  burn: { yGood: -1, pol: 1,
+    b: { radno_opterecenje: [0.25, 0.45], autonomija_na_poslu: [0.1, 0.25], podrska_kolega: [0.1, 0.3], radni_sati: [0.05, 0.2] },
+    f: { radni_sati: -0.3, autonomija_na_poslu: -0.1 } },
+  perf: { yGood: -1, pol: 1,
+    b: { samoorijentisani_perf: [0.02, 0.15], socijalno_propisani_perf: [0.15, 0.35], samosaosecanje: [0.15, 0.35], netolerancija_neizvesnosti: [0.2, 0.4] },
+    f: { samosaosecanje: -0.2, netolerancija_neizvesnosti: 0.1 } },
+  phone: { yGood: -1, pol: 1,
+    b: { problematicna_upotreba: [0.15, 0.3], fomo: [0.05, 0.2], usamljenost: [0.15, 0.35], fizicka_aktivnost: [0.05, 0.2] },
+    f: { problematicna_upotreba: 0.2, fomo: 0.15, fizicka_aktivnost: -0.3 } }
+};
+
+/* ---------- Faktori za t-test (2 nivoa) i ANOVU (3 nivoa) ----------
+   dir: +1 = prvi nivo (2 nivoa) ili rastući nivoi (3 nivoa) idu uz bolju prilagođenost, -1 obrnuto, 0 = nema očekivanja */
+const ALL = ["studenti", "odrasli", "par", "zaposleni"];
+const FACTORS2 = [
+  { v: "pol", l: "Pol", lv: ["zenski", "muski"], dir: 0, q: "žene i muškarci", gen: "pola", loc: "polu", for: ALL },
+  { v: "mesto_stanovanja", l: "Mesto stanovanja", lv: ["grad", "selo"], dir: 0, q: "ispitanici iz grada i sa sela", gen: "mesta stanovanja", loc: "mestu stanovanja", for: ALL },
+  { v: "partnerska_veza", l: "U partnerskoj vezi", lv: ["da", "ne"], dir: 1, q: "ispitanici koji jesu i koji nisu u partnerskoj vezi", gen: "partnerskog statusa", loc: "partnerskom statusu", for: ["studenti", "odrasli", "zaposleni"] },
+  { v: "sport", l: "Redovno se bavi sportom", lv: ["da", "ne"], dir: 1, q: "ispitanici koji se redovno bave sportom i oni koji se ne bave", gen: "bavljenja sportom", loc: "bavljenju sportom", for: ALL },
+  { v: "rad_uz_studije", l: "Radi uz studije", lv: ["da", "ne"], dir: -1, q: "studenti koji rade i koji ne rade uz studije", gen: "rada uz studije", loc: "radu uz studije", for: ["studenti"] },
+  { v: "rad_od_kuce", l: "Radi od kuće (bar delimično)", lv: ["da", "ne"], dir: 1, q: "zaposleni koji rade i koji ne rade od kuće", gen: "rada od kuće", loc: "radu od kuće", for: ["zaposleni"] },
+  { v: "deca", l: "Ima decu", lv: ["da", "ne"], dir: 0, q: "ispitanici koji imaju i koji nemaju decu", gen: "roditeljstva", loc: "roditeljstvu", for: ["odrasli", "par", "zaposleni"] }
+];
+const FACTORS3 = [
+  { v: "ses", l: "Socioekonomski status", lv: ["nizak", "srednji", "visok"], dir: 1, q: "ispitanici različitog socioekonomskog statusa", gen: "socioekonomskog statusa", loc: "socioekonomskom statusu", for: ALL },
+  { v: "region", l: "Region", lv: ["vojvodina", "beograd", "centralna_juzna"], dir: 0, q: "ispitanici iz različitih regiona", gen: "regiona", loc: "regionu", for: ALL },
+  { v: "godina_studija", l: "Godina studija", lv: ["prva", "druga", "treca_i_visa"], dir: 0, q: "studenti različitih godina studija", gen: "godine studija", loc: "godini studija", for: ["studenti"] },
+  { v: "starosna_grupa", l: "Starosna grupa", lv: ["18_29", "30_44", "45_65"], dir: 1, q: "ispitanici različitih starosnih grupa", gen: "starosne grupe", loc: "starosnoj grupi", for: ["odrasli", "par", "zaposleni"] },
+  { v: "obrazovanje", l: "Obrazovanje", lv: ["srednje", "visoko", "postdiplomsko"], dir: 1, q: "ispitanici različitog nivoa obrazovanja", gen: "obrazovanja", loc: "obrazovanju", for: ["odrasli", "par", "zaposleni"] },
+  { v: "sektor", l: "Sektor zaposlenja", lv: ["javni", "privatni", "civilni"], dir: 0, q: "zaposleni u različitim sektorima", gen: "sektora zaposlenja", loc: "sektoru zaposlenja", for: ["zaposleni"] },
+  { v: "duzina_veze", l: "Dužina veze", lv: ["do_2_god", "2_10_god", "preko_10_god"], dir: -1, q: "ispitanici sa vezama različite dužine", gen: "dužine veze", loc: "dužini veze", for: ["par"] }
+];
+
+/* ---------- Pretvaranje z-vrednosti u skor na skali ---------- */
+function toScale(sp, z) {
+  let x = clamp(sp.m + sp.s * z, sp.lo, sp.hi);
+  if (sp.t === "mean") return Number((Math.round(x * sp.k) / sp.k).toFixed(2));
+  if (sp.t === "dec") return Number(x.toFixed(sp.dp));
+  const st = sp.step || 1;
+  return Math.round(x / st) * st;
+}
+function rangeText(sp) {
+  if (sp.t === "mean") return `${sp.lo}–${sp.hi} (prosečan skor)`;
+  if (sp.t === "dec") return `${sp.lo}–${sp.hi}`;
+  return `${sp.lo}–${sp.hi} (ukupan skor)`;
+}
+
+/* ---------- Najveća apsolutna korelacija među kontinuiranim varijablama ---------- */
+function maxAbsCor(rows, cols) {
+  const n = rows.length;
+  const z = cols.map(c => {
+    const x = rows.map(r => r[c]), m = x.reduce((s, v) => s + v, 0) / n;
+    const sd = Math.sqrt(x.reduce((s, v) => s + (v - m) ** 2, 0)) || 1;
+    return x.map(v => (v - m) / sd);
+  });
+  let mx = 0;
+  for (let i = 0; i < z.length; i++) for (let j = i + 1; j < z.length; j++) {
+    let r = 0; for (let k = 0; k < n; k++) r += z[i][k] * z[j][k];
+    mx = Math.max(mx, Math.abs(r));
+  }
+  return mx;
+}
+
+/* ---------- p-vrednost interakcije u dvofaktorskoj ANOVI 2 × 3 ---------- */
+function interactionP(rows, A, B, yv) {
+  const n = rows.length;
+  const X = rows.map(r => [1, r[A.v] === A.lv[0] ? 1 : 0, r[B.v] === B.lv[1] ? 1 : 0, r[B.v] === B.lv[2] ? 1 : 0]);
+  const y = rows.map(r => r[yv]);
+  // aditivni model: OLS preko normalnih jednačina
+  const k = 4, M = Array.from({ length: k }, () => new Array(k + 1).fill(0));
+  for (let i = 0; i < n; i++) for (let p = 0; p < k; p++) { for (let q = 0; q < k; q++) M[p][q] += X[i][p] * X[i][q]; M[p][k] += X[i][p] * y[i]; }
+  for (let c = 0; c < k; c++) {
+    let piv = c; for (let r = c + 1; r < k; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+    [M[c], M[piv]] = [M[piv], M[c]];
+    if (Math.abs(M[c][c]) < 1e-12) return 1;
+    for (let r = 0; r < k; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let q = c; q <= k; q++) M[r][q] -= f * M[c][q]; }
+  }
+  const bcoef = M.map((row, i) => row[k] / row[i]);
+  let sseAdd = 0;
+  for (let i = 0; i < n; i++) { const e = y[i] - X[i].reduce((s, x, j) => s + x * bcoef[j], 0); sseAdd += e * e; }
+  // pun model = sredine ćelija
+  const cells = {};
+  rows.forEach((r, i) => { const c = r[A.v] + "|" + r[B.v]; (cells[c] = cells[c] || []).push(y[i]); });
+  if (Object.keys(cells).length < 6) return 1;
+  let sseFull = 0;
+  for (const v of Object.values(cells)) { const m = v.reduce((s, x) => s + x, 0) / v.length; v.forEach(x => sseFull += (x - m) ** 2); }
+  const df2 = n - 6, F = ((sseAdd - sseFull) / 2) / (sseFull / df2);
+  return Math.pow(1 + 2 * F / df2, -df2 / 2); // tačna p-vrednost za F(2, df2)
+}
+
+/* ---------- Skup podataka za jednog studenta ---------- */
+function buildDataset(studentId) {
+  const key = CONFIG.course + "|" + studentId.trim().toUpperCase().replace(/\s+/g, "");
+  const [h1, h2] = hashStr(key);
+  const code = (h1.toString(16).padStart(8, "0")).toUpperCase().replace(/(.{4})/, "$1-");
+  const R = makeRng(h2 ^ h1);
+
+  const T = R.pick(THEMES);
+  const A = R.pick(FACTORS2.filter(f => f.for.includes(T.sample)));
+  const B = R.pick(FACTORS3.filter(f => f.for.includes(T.sample)));
+  const n = R.int(CONFIG.nMin, CONFIG.nMax);
+
+  // parametri koji se razlikuju od studenta do studenta, ali uvek u teorijski očekivanom smeru
+  const P = PRIORS[T.id];
+  const U = (lo, hi) => lo + R.u() * (hi - lo);
+  const pA = 0.4 + R.u() * 0.2;
+  const wB = [0.25 + R.u() * 0.15, 0.25 + R.u() * 0.15, 0.25 + R.u() * 0.15];
+  const load = T.preds.map(() => U(0.2, 0.55));                       // povezanost prediktora preko zajedničkog faktora
+  const beta = T.preds.map(p => p.sign * U(...P.b[p.v]));              // efekat prediktora na kriterijum (smer fiksiran)
+  // smer prediktora u odnosu na „bolju prilagođenost“ (npr. neuroticizam je negativan)
+  const adj = T.preds.map(p => p.sign * P.yGood);
+
+  // Faktor A (2 nivoa): a = 1 je prvi nivo (npr. zenski, da)
+  let effA, shiftA;
+  if (A.v === "pol") {
+    effA = P.pol !== 0 ? P.pol * U(0.15, 0.45) : R.norm(0, 0.08);
+    const k = U(0.6, 1.2);
+    shiftA = T.preds.map(p => (P.f[p.v] !== undefined ? P.f[p.v] * k : R.norm(0, 0.06)));
+  } else if (A.dir !== 0) {
+    effA = A.dir * P.yGood * U(0.15, 0.5);
+    shiftA = adj.map(d => A.dir * d * U(0.05, 0.25));
+  } else {
+    effA = R.sign() * U(0, 0.25);
+    shiftA = T.preds.map(() => R.norm(0, 0.08));
+  }
+  // Faktor B (3 nivoa)
+  let effB, shiftB;
+  if (B.dir !== 0) {
+    const s1 = U(0.12, 0.35), s2 = s1 + U(0.12, 0.35);
+    effB = [0, s1, s2].map(x => B.dir * P.yGood * x);
+    shiftB = adj.map(d => { const g = B.dir * d * U(0.03, 0.15); return [-g, 0, g]; });
+  } else {
+    effB = [0, R.norm(0, 0.18), R.norm(0, 0.18)];
+    shiftB = T.preds.map(() => [R.norm(0, 0.06), R.norm(0, 0.06), R.norm(0, 0.06)]);
+  }
+  // interakcija A × B: u 95% skupova značajna (p < .05), u 5% nije
+  const wantInter = R.chance(CONFIG.interactionShare);
+  // za uređene faktore (npr. SES) interakcija je ordinalna: gradijent je strmiji u jednoj grupi, ali uvek u očekivanom smeru
+  const mag = 0.35 + R.u() * 0.4;
+  let inter, cUp, cDown, aTarget;
+  if (B.dir !== 0) { inter = wantInter ? B.dir * P.yGood * mag : 0; cUp = 2; cDown = 0; aTarget = R.int(0, 1); }
+  else { inter = wantInter ? R.sign() * mag : 0; cUp = R.int(0, 2); cDown = (cUp + 1 + R.int(0, 1)) % 3; aTarget = 1; }
+
+  let rows, tries = 0;
+  do {
+    rows = simulate();
+    tries++;
+  } while (tries < 300 && ((interactionP(rows, A, B, T.y.v) < 0.05) !== wantInter ||
+                            maxAbsCor(rows, [...T.preds.map(p => p.v), T.y.v]) > CONFIG.maxR));
+
+  function simulate() {
+    const raw = [];
+    for (let i = 0; i < n; i++) {
+      const a = R.u() < pA ? 1 : 0;
+      let r = R.u() * (wB[0] + wB[1] + wB[2]), b = 0;
+      while (b < 2 && r >= wB[b]) { r -= wB[b]; b++; }
+      const f = R.norm();
+      const z = T.preds.map((p, j) => p.sign * load[j] * f + Math.sqrt(1 - load[j] ** 2) * R.norm() + shiftA[j] * a + shiftB[j][b]);
+      const ix = a === aTarget ? (b === cUp ? inter : b === cDown ? -inter : 0) : 0;
+      const y = z.reduce((s, zj, j) => s + beta[j] * zj, 0) + effA * a + effB[b] + ix + R.norm(0, 0.8);
+      raw.push({ a, b, z, y });
+    }
+    // kriterijum standardizujemo na celom uzorku, pa prevodimo u skalu
+    const my = raw.reduce((s, r) => s + r.y, 0) / n;
+    const sy = Math.sqrt(raw.reduce((s, r) => s + (r.y - my) ** 2, 0) / (n - 1));
+    return raw.map((r, i) => {
+      const row = { id_ispitanika: i + 1 };
+      row[A.v] = A.lv[r.a === 1 ? 0 : 1];
+      row[B.v] = B.lv[r.b];
+      T.preds.forEach((p, j) => { row[p.v] = toScale(p, r.z[j]); });
+      row[T.y.v] = toScale(T.y, (r.y - my) / sy);
+      return row;
+    });
+  }
+
+  const vars = [
+    ["id_ispitanika", "Redni broj ispitanika", "ceo broj", "1 do N"],
+    [A.v, A.l, "kategorijalna, 2 nivoa", A.lv.join(", ")],
+    [B.v, B.l, "kategorijalna, 3 nivoa", B.lv.join(", ")],
+    ...T.preds.map(p => [p.v, `${p.l} (${p.d})`, "kontinuirana, prediktor", rangeText(p)]),
+    [T.y.v, `${T.y.l} (${T.y.d})`, "kontinuirana, kriterijum", rangeText(T.y)]
+  ];
+
+  const q = s => `„${s}“`;
+  const predList = T.preds.map(p => q(p.l));
+  const listText = predList.slice(0, -1).join(", ") + " i " + predList[predList.length - 1];
+  const questions = [
+    ["t-test za nezavisne uzorke", `Da li se ${A.q} razlikuju na varijabli ${q(T.y.l)}?`],
+    ["Pirsonova korelacija", `Kakve su korelacije između varijabli ${listText} i varijable ${q(T.y.l)}? Kako su prediktori međusobno povezani?`],
+    ["Višestruka regresija", `U kojoj meri ${listText} zajedno predviđaju ${q(T.y.l)}? Koji prediktor daje najveći samostalni doprinos?`],
+    ["Jednofaktorska ANOVA", `Da li se ${B.q} razlikuju na varijabli ${q(T.y.l)}? Između kojih grupa postoje razlike?`],
+    ["Dvofaktorska ANOVA", `Da li na varijabli ${q(T.y.l)} postoje glavni efekti ${A.gen} i ${B.gen}, i da li postoji njihova interakcija?`]
+  ];
+
+  const context = `Ukupno je učestvovalo ${n} ispitanika. ` + T.context + ` Prikupljeni su i podaci o ${A.loc} i ${B.loc}.`;
+
+  return { id: studentId.trim(), code, title: T.title, context, n, rows, vars, questions };
+}
+
+/* ---------- Izlazni formati ---------- */
+function toCSV(ds) {
+  const cols = ds.vars.map(v => v[0]);
+  const esc = x => x === null || x === undefined ? "" : (/[",\n]/.test(String(x)) ? '"' + String(x).replace(/"/g, '""') + '"' : String(x));
+  return [cols.join(","), ...ds.rows.map(r => cols.map(c => esc(r[c])).join(","))].join("\n") + "\n";
+}
+function toCodebook(ds) {
+  const L = [];
+  L.push("ŠIFARNIK SKUPA PODATAKA", "=======================", "");
+  L.push("Broj indeksa:      " + ds.id, "Šifra podataka:    " + ds.code, "Istraživanje:      " + ds.title, "Broj ispitanika:   N = " + ds.n, "");
+  L.push("OPIS ISTRAŽIVANJA", wrap(ds.context), "");
+  L.push("VARIJABLE");
+  for (const [name, label, type, range] of ds.vars) L.push("  " + name, wrap(label, "      ", "      "), "      Tip: " + type, "      Vrednosti: " + range, "");
+  L.push("NAPOMENE", wrap("Podaci su potpuni, bez nedostajućih vrednosti. Decimalni separator je tačka."), "");
+  L.push("ISTRAŽIVAČKA PITANJA I ANALIZE");
+  ds.questions.forEach(([an, qq], i) => L.push(wrap((i + 1) + ". [" + an + "] " + qq, "   ")));
+  L.push("", "Podaci su simulirani za potrebe nastave. Navedi šifru podataka u svom radu.");
+  return L.join("\n") + "\n";
+}
+function wrap(text, indent = "", first = "") {
+  const words = text.split(" "), out = []; let line = first;
+  for (const w of words) {
+    if ((line + " " + w).length > 78 && line.trim()) { out.push(line); line = indent + w; }
+    else line = line.trim() ? line + " " + w : line + w;
+  }
+  if (line) out.push(line);
+  return out.join("\n");
+}
+
+/* ---------- Stranica ---------- */
+const $ = id => document.getElementById(id);
+let current = null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function render(ds) {
+  $("r-title").textContent = ds.title;
+  $("r-chips").innerHTML = [
+    ["Šifra podataka", ds.code], ["Indeks", ds.id], ["N", ds.n], ["Varijabli", ds.vars.length]
+  ].map(([k, v]) => `<span class="chip">${k} <b>${esc(v)}</b></span>`).join("");
+  $("r-context").textContent = ds.context;
+  $("r-codebook").innerHTML = "<thead><tr><th>Varijabla</th><th>Značenje</th><th>Tip</th><th>Vrednosti</th></tr></thead><tbody>" +
+    ds.vars.map(v => `<tr><td><code>${v[0]}</code></td><td>${esc(v[1])}</td><td>${esc(v[2])}</td><td>${esc(v[3])}</td></tr>`).join("") + "</tbody>";
+  const cols = ds.vars.map(v => v[0]);
+  $("r-preview").innerHTML = "<thead><tr>" + cols.map(c => `<th>${c}</th>`).join("") + "</tr></thead><tbody>" +
+    ds.rows.slice(0, 10).map(r => "<tr>" + cols.map(c => `<td>${esc(r[c])}</td>`).join("") + "</tr>").join("") + "</tbody>";
+  $("r-rq").innerHTML = ds.questions.map(([an, qq]) => `<li><span class="tag">${an}</span> ${esc(qq)}</li>`).join("");
+  $("dl-status").textContent = "";
+  $("result").hidden = false;
+}
+
+$("form").addEventListener("submit", e => {
+  e.preventDefault();
+  const id = $("sid").value.trim();
+  if (id.length < 3) { $("err").textContent = "Unesi broj indeksa (najmanje 3 znaka)."; $("sid").focus(); return; }
+  $("err").textContent = "";
+  current = buildDataset(id);
+  render(current);
+  $("result").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+});
+
+const downloadsReady = (window.claude && typeof window.claude.use === "function")
+  ? window.claude.use("downloads").catch(() => null) : Promise.resolve(null);
+
+async function saveFile(filename, text, mime) {
+  const st = $("dl-status");
+  const dl = await downloadsReady;
+  if (dl) {
+    try { await dl.save({ filename, data: text }); st.textContent = "Sačuvano: " + filename; }
+    catch (err) {
+      st.textContent = err && err.code === "declined" ? "Preuzimanje je otkazano." : "Preuzimanje ovde nije dostupno. Klikni Kopiraj CSV i nalepi sadržaj u tekstualnu datoteku sa nastavkom .csv.";
+    }
+    return;
+  }
+  // Rezervna varijanta kada je stranica postavljena negde drugde (npr. na sajt predmeta)
+  try {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+    a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    st.textContent = "Preuzimanje: " + filename + ". Ako se ništa ne desi, klikni Kopiraj CSV.";
+  } catch { st.textContent = "Preuzimanje ovde nije dostupno. Klikni Kopiraj CSV."; }
+}
+const base = () => "podaci_" + current.id.replace(/[^A-Za-z0-9_-]/g, "") + "_" + current.code;
+$("dl-csv").addEventListener("click", () => current && saveFile(base() + ".csv", toCSV(current), "text/csv"));
+$("dl-cb").addEventListener("click", () => current && saveFile(base() + "_sifarnik.txt", toCodebook(current), "text/plain"));
+$("copy").addEventListener("click", async () => {
+  if (!current) return;
+  try { await navigator.clipboard.writeText(toCSV(current)); $("dl-status").textContent = "CSV je kopiran. Nalepi ga u tekstualnu datoteku i sačuvaj sa nastavkom .csv."; }
+  catch { $("dl-status").textContent = "Pregledač je blokirao kopiranje. Probaj dugme za preuzimanje."; }
+});
+</script>
+</body>
+</html>
