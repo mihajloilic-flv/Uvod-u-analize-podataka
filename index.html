@@ -124,7 +124,9 @@ footer { font-size: 13px; color: var(--muted); }
     <h3>Šifarnik</h3>
     <div class="scroll"><table id="r-codebook"></table></div>
 
-    <h3>Prvih 10 redova</h3>
+    <p class="note" id="r-recode"></p>
+
+    <h3>Prvih 10 redova (ukupni skorovi; stavke su u CSV fajlu)</h3>
     <div class="scroll"><table class="data" id="r-preview"></table></div>
 
     <h3>Istraživačka pitanja i analize</h3>
@@ -139,7 +141,7 @@ footer { font-size: 13px; color: var(--muted); }
 /* ---------- Podešavanja za nastavnika ---------- */
 const CONFIG = {
   course: "PSY-DATA-ANALYSIS",   // promena ove vrednosti daje svim studentima nove podatke (npr. sledeće godine)
-  nMin: 120, nMax: 240,
+  nMin: 300, nMax: 450,
   interactionShare: 0.95,         // udeo skupova u kojima je interakcija A × B značajna
   maxR: 0.60                      // nijedna korelacija (prediktor–kriterijum ni prediktor–prediktor) ne prelazi ovu vrednost
 };
@@ -210,19 +212,19 @@ const THEMES = [
       { v: "kompetentnost", l: "Zadovoljenje potrebe za kompetentnošću", d: "BPNSFS, 4 stavke", t: "mean", lo: 1, hi: 5, k: 4, m: 3.7, s: 0.7, sign: 1 },
       { v: "frustracija_potreba", l: "Frustracija potreba", d: "BPNSFS, 12 stavki", t: "mean", lo: 1, hi: 5, k: 12, m: 2.4, s: 0.7, sign: -1 }
     ],
-    y: { v: "zadovoljstvo_zivotom", l: "Zadovoljstvo životom", d: "SWLS, 5 stavki, odgovori 1–7; viši skor = veće zadovoljstvo", t: "sum", lo: 5, hi: 35, m: 23, s: 6 }
+    y: { v: "zadovoljstvo_zivotom", items: [5, 1, 7], l: "Zadovoljstvo životom", d: "SWLS, 5 stavki, odgovori 1–7; viši skor = veće zadovoljstvo", t: "sum", lo: 5, hi: 35, m: 23, s: 6 }
   },
   {
     id: "erq", sample: "odrasli",
     title: "Kognitivna regulacija emocija, optimizam i stres",
     context: "Odrasli ispitanici popunili su Upitnik kognitivne regulacije emocija (CERQ), Test životne orijentacije (LOT-R), subskalu ruminacije (RRS) i subskalu stresa iz skale DASS-21. Ispituje se koje kognitivne strategije i crte su povezane sa doživljajem stresa.",
     preds: [
-      { v: "stavljanje_u_perspektivu", l: "Stavljanje u perspektivu", d: "CERQ, 4 stavke, odgovori 1–5", t: "sum", lo: 4, hi: 20, m: 12, s: 3.5, sign: -1 },
-      { v: "katastrofiziranje", l: "Katastrofiziranje", d: "CERQ, 4 stavke, odgovori 1–5", t: "sum", lo: 4, hi: 20, m: 9, s: 3.5, sign: 1 },
-      { v: "optimizam", l: "Optimizam", d: "LOT-R, 6 stavki, odgovori 0–4", t: "sum", lo: 0, hi: 24, m: 15, s: 4, sign: -1 },
-      { v: "ruminacija", l: "Ruminacija", d: "RRS, subskala razmišljanja, 5 stavki, odgovori 1–4", t: "sum", lo: 5, hi: 20, m: 11, s: 3, sign: 1 }
+      { v: "stavljanje_u_perspektivu", items: [4, 1, 5], l: "Stavljanje u perspektivu", d: "CERQ, 4 stavke, odgovori 1–5", t: "sum", lo: 4, hi: 20, m: 12, s: 3.5, sign: -1 },
+      { v: "katastrofiziranje", items: [4, 1, 5], l: "Katastrofiziranje", d: "CERQ, 4 stavke, odgovori 1–5", t: "sum", lo: 4, hi: 20, m: 9, s: 3.5, sign: 1 },
+      { v: "optimizam", items: [6, 0, 4], l: "Optimizam", d: "LOT-R, 6 stavki, odgovori 0–4", t: "sum", lo: 0, hi: 24, m: 15, s: 4, sign: -1 },
+      { v: "ruminacija", items: [5, 1, 4], l: "Ruminacija", d: "RRS, subskala razmišljanja, 5 stavki, odgovori 1–4", t: "sum", lo: 5, hi: 20, m: 11, s: 3, sign: 1 }
     ],
-    y: { v: "stres", l: "Stres", d: "DASS-21, subskala stresa, zbir × 2; viši skor = više stresa", t: "sum", lo: 0, hi: 42, m: 14, s: 8, step: 2 }
+    y: { v: "stres", items: [7, 0, 3, 2], l: "Stres", d: "DASS-21, subskala stresa, zbir × 2; viši skor = više stresa", t: "sum", lo: 0, hi: 42, m: 14, s: 8, step: 2 }
   },
   {
     id: "acad", sample: "studenti",
@@ -232,7 +234,7 @@ const THEMES = [
       { v: "intrinzicka_motivacija", l: "Intrinzička motivacija", d: "AMS, 12 stavki", t: "mean", lo: 1, hi: 7, k: 12, m: 4.9, s: 1.1, sign: 1 },
       { v: "ekstrinzicka_motivacija", l: "Ekstrinzička motivacija", d: "AMS, 12 stavki", t: "mean", lo: 1, hi: 7, k: 12, m: 5.0, s: 1.0, sign: 1 },
       { v: "amotivacija", l: "Amotivacija", d: "AMS, 4 stavke", t: "mean", lo: 1, hi: 7, k: 4, m: 2.0, s: 1.1, sign: -1 },
-      { v: "prokrastinacija", l: "Prokrastinacija", d: "Takmanova skala, 16 stavki, odgovori 1–4", t: "sum", lo: 16, hi: 64, m: 38, s: 9, sign: -1 }
+      { v: "prokrastinacija", items: [16, 1, 4], l: "Prokrastinacija", d: "Takmanova skala, 16 stavki, odgovori 1–4", t: "sum", lo: 16, hi: 64, m: 38, s: 9, sign: -1 }
     ],
     y: { v: "prosek_ocena", l: "Prosečna ocena", d: "prosečna ocena na studijama", t: "dec", lo: 6, hi: 10, dp: 2, m: 8.2, s: 0.8 }
   },
@@ -246,7 +248,7 @@ const THEMES = [
       { v: "psihopatija", l: "Psihopatija", d: "SD3, 9 stavki", t: "mean", lo: 1, hi: 5, k: 9, m: 2.2, s: 0.6, sign: 1 },
       { v: "empatija", l: "Empatija", d: "BES, 20 stavki", t: "mean", lo: 1, hi: 5, k: 20, m: 3.7, s: 0.5, sign: -1 }
     ],
-    y: { v: "agresivnost", l: "Agresivnost", d: "BPAQ-SF, 12 stavki, odgovori 1–5; viši skor = veća agresivnost", t: "sum", lo: 12, hi: 60, m: 29, s: 8 }
+    y: { v: "agresivnost", items: [12, 1, 5], l: "Agresivnost", d: "BPAQ-SF, 12 stavki, odgovori 1–5; viši skor = veća agresivnost", t: "sum", lo: 12, hi: 60, m: 29, s: 8 }
   },
   {
     id: "attach", sample: "par",
@@ -255,7 +257,7 @@ const THEMES = [
     preds: [
       { v: "anksioznost_vezanosti", l: "Anksioznost u vezanosti", d: "ECR-R, 18 stavki", t: "mean", lo: 1, hi: 7, k: 18, m: 3.4, s: 1.1, sign: -1 },
       { v: "izbegavanje_vezanosti", l: "Izbegavanje u vezanosti", d: "ECR-R, 18 stavki", t: "mean", lo: 1, hi: 7, k: 18, m: 2.8, s: 1.0, sign: -1 },
-      { v: "samopostovanje", l: "Samopoštovanje", d: "Rozenbergova skala, 10 stavki, odgovori 1–4", t: "sum", lo: 10, hi: 40, m: 30, s: 5, sign: 1 },
+      { v: "samopostovanje", items: [10, 1, 4], l: "Samopoštovanje", d: "Rozenbergova skala, 10 stavki, odgovori 1–4", t: "sum", lo: 10, hi: 40, m: 30, s: 5, sign: 1 },
       { v: "konflikti", l: "Učestalost konflikata u vezi", d: "5 stavki", t: "mean", lo: 1, hi: 5, k: 5, m: 2.4, s: 0.7, sign: -1 }
     ],
     y: { v: "zadovoljstvo_vezom", l: "Zadovoljstvo partnerskom vezom", d: "RAS, 7 stavki; viši skor = veće zadovoljstvo", t: "mean", lo: 1, hi: 5, k: 7, m: 3.9, s: 0.7 }
@@ -280,21 +282,21 @@ const THEMES = [
       { v: "samoorijentisani_perf", l: "Samoorijentisani perfekcionizam", d: "MPS, 15 stavki", t: "mean", lo: 1, hi: 7, k: 15, m: 4.6, s: 1.0, sign: 1 },
       { v: "socijalno_propisani_perf", l: "Socijalno propisani perfekcionizam", d: "MPS, 15 stavki", t: "mean", lo: 1, hi: 7, k: 15, m: 3.8, s: 1.0, sign: 1 },
       { v: "samosaosecanje", l: "Samosaosećanje", d: "SCS-SF, 12 stavki", t: "mean", lo: 1, hi: 5, k: 12, m: 3.0, s: 0.65, sign: -1 },
-      { v: "netolerancija_neizvesnosti", l: "Netolerancija neizvesnosti", d: "IUS-12, 12 stavki, odgovori 1–5", t: "sum", lo: 12, hi: 60, m: 33, s: 9, sign: 1 }
+      { v: "netolerancija_neizvesnosti", items: [12, 1, 5], l: "Netolerancija neizvesnosti", d: "IUS-12, 12 stavki, odgovori 1–5", t: "sum", lo: 12, hi: 60, m: 33, s: 9, sign: 1 }
     ],
-    y: { v: "anksioznost", l: "Anksioznost", d: "GAD-7; 5/10/15 = blaga/umerena/teška anksioznost", t: "sum", lo: 0, hi: 21, m: 7, s: 4.5 }
+    y: { v: "anksioznost", items: [7, 0, 3], l: "Anksioznost", d: "GAD-7; 5/10/15 = blaga/umerena/teška anksioznost", t: "sum", lo: 0, hi: 21, m: 7, s: 4.5 }
   },
   {
     id: "phone", sample: "studenti",
     title: "Upotreba mobilnog telefona i kvalitet sna",
     context: "Studenti su popunili kratku Skalu zavisnosti od pametnog telefona (SAS-SV), Skalu straha od propuštanja (FoMO), kratku UCLA skalu usamljenosti i Pitsburški indeks kvaliteta sna (PSQI), i naveli koliko sati nedeljno su fizički aktivni.",
     preds: [
-      { v: "problematicna_upotreba", l: "Problematična upotreba telefona", d: "SAS-SV, 10 stavki, odgovori 1–6", t: "sum", lo: 10, hi: 60, m: 30, s: 9, sign: 1 },
+      { v: "problematicna_upotreba", items: [10, 1, 6], l: "Problematična upotreba telefona", d: "SAS-SV, 10 stavki, odgovori 1–6", t: "sum", lo: 10, hi: 60, m: 30, s: 9, sign: 1 },
       { v: "fomo", l: "Strah od propuštanja (FoMO)", d: "FoMOs, 10 stavki", t: "mean", lo: 1, hi: 5, k: 10, m: 2.6, s: 0.7, sign: 1 },
-      { v: "usamljenost", l: "Usamljenost", d: "UCLA-3, 3 stavke, odgovori 1–3", t: "sum", lo: 3, hi: 9, m: 5.5, s: 1.6, sign: 1 },
+      { v: "usamljenost", items: [3, 1, 3], l: "Usamljenost", d: "UCLA-3, 3 stavke, odgovori 1–3", t: "sum", lo: 3, hi: 9, m: 5.5, s: 1.6, sign: 1 },
       { v: "fizicka_aktivnost", l: "Fizička aktivnost", d: "sati nedeljno", t: "dec", lo: 0, hi: 20, dp: 1, m: 4, s: 3, sign: -1 }
     ],
-    y: { v: "los_kvalitet_sna", l: "Loš kvalitet sna", d: "PSQI ukupan skor; viši skor = lošiji san, > 5 = loš san", t: "sum", lo: 0, hi: 21, m: 6.5, s: 3.3 }
+    y: { v: "los_kvalitet_sna", items: [7, 0, 3], l: "Loš kvalitet sna", d: "PSQI ukupan skor; viši skor = lošiji san, > 5 = loš san", t: "sum", lo: 0, hi: 21, m: 6.5, s: 3.3 }
   }
 ];
 
@@ -412,6 +414,13 @@ function interactionP(rows, A, B, yv) {
   return Math.pow(1 + 2 * F / df2, -df2 / 2); // tačna p-vrednost za F(2, df2)
 }
 
+/* ---------- Stavke: raspon odgovora i broj stavki za svaku skalu ---------- */
+function itemSpec(sp) {
+  if (sp.t === "mean") return { k: sp.k, ilo: sp.lo, ihi: sp.hi, mult: 1 };
+  if (sp.items) return { k: sp.items[0], ilo: sp.items[1], ihi: sp.items[2], mult: sp.items[3] || 1 };
+  return null;
+}
+
 /* ---------- Skup podataka za jednog studenta ---------- */
 function buildDataset(studentId) {
   const key = CONFIG.course + "|" + studentId.trim().toUpperCase().replace(/\s+/g, "");
@@ -465,6 +474,33 @@ function buildDataset(studentId) {
   if (B.dir !== 0) { inter = wantInter ? B.dir * P.yGood * mag : 0; cUp = 2; cDown = 0; aTarget = R.int(0, 1); }
   else { inter = wantInter ? R.sign() * mag : 0; cUp = R.int(0, 2); cDown = (cUp + 1 + R.int(0, 1)) % 3; aTarget = 1; }
 
+  // merni model (kongenerički): stavka = μ_i + λ_i · latentna crta + jedinstvena greška; ukupni skor se računa iz stavki
+  const itemGroups = [], IG = {};
+  for (const sp of [...T.preds, T.y]) {
+    const is = itemSpec(sp);
+    if (!is) continue;
+    const { k, ilo, ihi, mult } = is;
+    const ell = Array.from({ length: k }, () => 0.55 + R.u() * 0.3);        // standardizovana zasićenja .55–.85
+    const sumSD = sp.t === "mean" ? sp.s * k : sp.s / mult;                 // SD zbira stavki
+    const sumM = sp.t === "mean" ? sp.m * k : sp.m / mult;                  // prosek zbira stavki
+    const sigma = sumSD / Math.sqrt(ell.reduce((a, l) => a + l, 0) ** 2 + ell.reduce((a, l) => a + 1 - l * l, 0));
+    let diff = Array.from({ length: k }, () => R.norm(0, 0.08 * (ihi - ilo)));  // stavke se razlikuju po težini
+    const md = diff.reduce((a, d) => a + d, 0) / k;
+    const mu = diff.map(d => sumM / k + d - md);
+    const g = { sp, names: mu.map((_, i) => `${sp.v}_${i + 1}`), k, ilo, ihi, mult, ell, sigma, mu };
+    itemGroups.push(g); IG[sp.v] = g;
+  }
+  const scoreFromItems = (row, sp, z) => {
+    const g = IG[sp.v];
+    if (!g) { row[sp.v] = toScale(sp, z); return; }
+    let sum = 0;
+    for (let i = 0; i < g.k; i++) {
+      const x = clamp(Math.round(g.mu[i] + g.sigma * (g.ell[i] * z + Math.sqrt(1 - g.ell[i] ** 2) * R.norm())), g.ilo, g.ihi);
+      row[g.names[i]] = x; sum += x;
+    }
+    row[sp.v] = sp.t === "mean" ? Number((sum / g.k).toFixed(2)) : sum * g.mult;
+  };
+
   let rows, tries = 0;
   do {
     rows = simulate();
@@ -491,8 +527,8 @@ function buildDataset(studentId) {
       const row = { id_ispitanika: i + 1 };
       row[A.v] = A.lv[r.a === 1 ? 0 : 1];
       row[B.v] = B.lv[r.b];
-      T.preds.forEach((p, j) => { row[p.v] = toScale(p, r.z[j]); });
-      row[T.y.v] = toScale(T.y, (r.y - my) / sy);
+      T.preds.forEach((p, j) => scoreFromItems(row, p, r.z[j]));
+      scoreFromItems(row, T.y, (r.y - my) / sy);
       return row;
     });
   }
@@ -518,14 +554,25 @@ function buildDataset(studentId) {
 
   const context = `Ukupno je učestvovalo ${n} ispitanika. ` + T.context + ` Prikupljeni su i podaci o ${A.loc} i ${B.loc}.`;
 
-  return { id: studentId.trim(), code, title: T.title, context, n, rows, vars, questions };
+  const columns = [vars[0][0], vars[1][0], vars[2][0], ...itemGroups.flatMap(g => g.names), ...vars.slice(3).map(v => v[0])];
+  return { id: studentId.trim(), code, title: T.title, context, n, rows, vars, questions, itemGroups, columns };
 }
 
 /* ---------- Izlazni formati ---------- */
 function toCSV(ds) {
-  const cols = ds.vars.map(v => v[0]);
+  const cols = ds.columns;
   const esc = x => x === null || x === undefined ? "" : (/[",\n]/.test(String(x)) ? '"' + String(x).replace(/"/g, '""') + '"' : String(x));
   return [cols.join(","), ...ds.rows.map(r => cols.map(c => esc(r[c])).join(","))].join("\n") + "\n";
+}
+function itemRows(ds) {
+  return ds.itemGroups.map(g => {
+    const what = g.sp.v === "los_kvalitet_sna" ? "Komponente PSQI" : "Stavke skale";
+    const rule = g.sp.t === "mean" ? "prosek stavki, zaokružen na 2 decimale" : g.mult > 1 ? `zbir stavki × ${g.mult}` : (g.sp.v === "los_kvalitet_sna" ? "zbir komponenti" : "zbir stavki");
+    return [`${g.names[0]} … ${g.names[g.names.length - 1]}`, `${what} „${g.sp.l}“ (${g.names.length}). ${g.sp.v} = ${rule}`, "stavka (ceo broj)", `${g.ilo}–${g.ihi}`];
+  });
+}
+function recodeList(ds) {
+  return ds.vars.slice(1, 3).map(v => ({ v: v[0], map: v[3].split(", ").map((lv, i) => `${lv} = ${i + 1}`).join(", ") }));
 }
 function toCodebook(ds) {
   const L = [];
@@ -534,7 +581,14 @@ function toCodebook(ds) {
   L.push("OPIS ISTRAŽIVANJA", wrap(ds.context), "");
   L.push("VARIJABLE");
   for (const [name, label, type, range] of ds.vars) L.push("  " + name, wrap(label, "      ", "      "), "      Tip: " + type, "      Vrednosti: " + range, "");
+  L.push("STAVKE");
+  L.push(wrap("Za svaku skalu date su i pojedinačne stavke. Obrnuto formulisane stavke su već rekodirane, pa sve stavke imaju isti smer kao ukupni skor. Ukupni skorovi su izračunati iz stavki i tačno se poklapaju sa njima. Stavke su generisane prema jednofaktorskom modelu za svaki konstrukt, pa su pogodne za konfirmatornu faktorsku analizu."), "");
+  for (const [name, label, type, range] of itemRows(ds)) L.push("  " + name, wrap(label, "      ", "      "), "      Tip: " + type, "      Vrednosti: " + range, "");
   L.push("NAPOMENE", wrap("Podaci su potpuni, bez nedostajućih vrednosti. Decimalni separator je tačka."), "");
+  L.push("REKODIRANJE KATEGORIJALNIH VARIJABLI");
+  L.push(wrap("Neke varijable su kodirane slovima (rečima), a ne brojevima. Pre analize ćeš morati da ih rekodiraš u brojeve. Na primer:"));
+  for (const r of recodeList(ds)) L.push("  " + r.v.padEnd(18) + r.map);
+  L.push("");
   L.push("ISTRAŽIVAČKA PITANJA I ANALIZE");
   ds.questions.forEach(([an, qq], i) => L.push(wrap((i + 1) + ". [" + an + "] " + qq, "   ")));
   L.push("", "Podaci su simulirani za potrebe nastave. Navedi šifru podataka u svom radu.");
@@ -558,14 +612,16 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 function render(ds) {
   $("r-title").textContent = ds.title;
   $("r-chips").innerHTML = [
-    ["Šifra podataka", ds.code], ["Indeks", ds.id], ["N", ds.n], ["Varijabli", ds.vars.length]
+    ["Šifra podataka", ds.code], ["Indeks", ds.id], ["N", ds.n], ["Varijabli", ds.columns.length], ["Stavki", ds.itemGroups.reduce((a, g) => a + g.names.length, 0)]
   ].map(([k, v]) => `<span class="chip">${k} <b>${esc(v)}</b></span>`).join("");
   $("r-context").textContent = ds.context;
   $("r-codebook").innerHTML = "<thead><tr><th>Varijabla</th><th>Značenje</th><th>Tip</th><th>Vrednosti</th></tr></thead><tbody>" +
-    ds.vars.map(v => `<tr><td><code>${v[0]}</code></td><td>${esc(v[1])}</td><td>${esc(v[2])}</td><td>${esc(v[3])}</td></tr>`).join("") + "</tbody>";
+    [...ds.vars, ...itemRows(ds)].map(v => `<tr><td><code>${esc(v[0])}</code></td><td>${esc(v[1])}</td><td>${esc(v[2])}</td><td>${esc(v[3])}</td></tr>`).join("") + "</tbody>";
   const cols = ds.vars.map(v => v[0]);
   $("r-preview").innerHTML = "<thead><tr>" + cols.map(c => `<th>${c}</th>`).join("") + "</tr></thead><tbody>" +
     ds.rows.slice(0, 10).map(r => "<tr>" + cols.map(c => `<td>${esc(r[c])}</td>`).join("") + "</tr>").join("") + "</tbody>";
+  $("r-recode").innerHTML = "Neke varijable su kodirane slovima (rečima), a ne brojevima. Pre analize ćeš morati da ih rekodiraš u brojeve, na primer: " +
+    recodeList(ds).map(r => `<code>${r.v}</code> (${esc(r.map)})`).join("; ") + ".";
   $("r-rq").innerHTML = ds.questions.map(([an, qq]) => `<li><span class="tag">${an}</span> ${esc(qq)}</li>`).join("");
   $("dl-status").textContent = "";
   $("result").hidden = false;
