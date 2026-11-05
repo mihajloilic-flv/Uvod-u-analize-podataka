@@ -115,7 +115,8 @@ footer { font-size: 13px; color: var(--muted); }
     <div class="chips" id="r-chips"></div>
     <p id="r-context"></p>
     <div class="actions">
-      <button class="primary" type="button" id="dl-csv">Preuzmi podatke (.csv)</button>
+      <button class="primary" type="button" id="dl-sav">Preuzmi podatke (.sav, SPSS)</button>
+      <button class="secondary" type="button" id="dl-csv">Preuzmi podatke (.csv)</button>
       <button class="secondary" type="button" id="dl-cb">Preuzmi šifarnik (.txt)</button>
       <button class="secondary" type="button" id="copy">Kopiraj CSV</button>
       <span class="status" id="dl-status"></span>
@@ -604,6 +605,88 @@ function wrap(text, indent = "", first = "") {
   return out.join("\n");
 }
 
+/* ---------- SPSS .sav (sistemski fajl, bez kompresije, UTF-8) ---------- */
+function toSAV(ds) {
+  const enc = new TextEncoder();
+  const chunks = [];
+  let size = 0;
+  const push = u8 => { chunks.push(u8); size += u8.length; };
+  const i32 = v => { const b = new Uint8Array(4); new DataView(b.buffer).setInt32(0, v, true); push(b); };
+  const f64 = v => { const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, v, true); push(b); };
+  const str = (s, len, pad = " ") => {               // tekst fiksne dužine u bajtovima, dopunjen razmacima
+    const src = enc.encode(s), b = new Uint8Array(len).fill(pad.charCodeAt(0));
+    b.set(src.subarray(0, len)); push(b);
+  };
+  const ascii = t => t.replace(/[đĐ]/g, m => (m === "đ" ? "dj" : "Dj")).normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[„“”]/g, '"').replace(/[–—]/g, "-").replace(/×/g, "x").replace(/…/g, "...").replace(/[^\x20-\x7E]/g, "");
+  const cut = (s, maxBytes) => {                     // skrati UTF-8 tekst bez lomljenja znaka
+    let out = "";
+    for (const ch of s) { if (enc.encode(out + ch).length > maxBytes) break; out += ch; }
+    return out;
+  };
+
+  // opis svake kolone
+  const labelOf = {};
+  ds.vars.forEach(v => { labelOf[v[0]] = v[1]; });
+  ds.itemGroups.forEach(g => g.names.forEach((nm, i) => { labelOf[nm] = `${g.sp.l}, ${g.sp.v === "los_kvalitet_sna" ? "komponenta" : "stavka"} ${i + 1}`; }));
+  const itemSet = new Set(ds.itemGroups.flatMap(g => g.names));
+  const meanSet = new Set(ds.itemGroups.filter(g => g.sp.t === "mean").map(g => g.sp.v));
+  const cols = ds.columns.map((name, idx) => {
+    const vals = ds.rows.map(r => r[name]);
+    const isStr = vals.some(v => typeof v === "string");
+    let width = 0, dec = 0;
+    if (isStr) width = Math.max(1, ...vals.map(v => enc.encode(String(v)).length));
+    else dec = meanSet.has(name) ? 2 : Math.max(0, ...vals.map(v => { const s = String(v); return s.includes(".") ? s.split(".")[1].length : 0; }));
+    const measure = idx === 0 || isStr ? 1 : itemSet.has(name) ? 2 : 3;   // 1 nominalna, 2 ordinalna, 3 scale
+    return { name, short: "V" + String(idx + 1).padStart(7, "0"), isStr, width, segs: isStr ? Math.ceil(width / 8) : 1, dec, measure, label: cut(ascii(labelOf[name] || name), 255) };
+  });
+  const caseSize = cols.reduce((a, c) => a + c.segs, 0);
+  const now = new Date(), mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][now.getMonth()];
+  const p2 = x => String(x).padStart(2, "0");
+
+  // zaglavlje
+  str("$FL2", 4);
+  str("@(#) SPSS DATA FILE - Generator podataka za psihologiju", 60);
+  i32(2); i32(caseSize); i32(0); i32(0); i32(ds.rows.length); f64(100);
+  str(`${p2(now.getDate())} ${mon} ${p2(now.getFullYear() % 100)}`, 9);
+  str(`${p2(now.getHours())}:${p2(now.getMinutes())}:${p2(now.getSeconds())}`, 8);
+  str(ascii(`Matrica ${ds.code}, indeks ${ds.id}`), 64);
+  str("", 3, "\0");
+
+  // varijable
+  for (const c of cols) {
+    const fmt = c.isStr ? (1 << 16) | (Math.min(c.width, 255) << 8) : (5 << 16) | (8 << 8) | c.dec;
+    i32(2); i32(c.isStr ? c.width : 0); i32(1); i32(0); i32(fmt); i32(fmt); str(c.short, 8);
+    const lb = enc.encode(c.label);
+    i32(lb.length); str(c.label, Math.ceil(lb.length / 4) * 4);
+    for (let s = 1; s < c.segs; s++) { i32(2); i32(-1); i32(0); i32(0); i32(0x011d01); i32(0x011d01); str("", 8); }
+  }
+  // 7.3 podaci o računaru (IEEE, little-endian, UTF-8)
+  i32(7); i32(3); i32(4); i32(8); i32(20); i32(0); i32(0); i32(-1); i32(1); i32(1); i32(2); i32(65001);
+  // 7.4 posebne vrednosti
+  i32(7); i32(4); i32(8); i32(3); f64(-Number.MAX_VALUE); f64(Number.MAX_VALUE); f64(-1.7976931348623155e308);
+  // 7.11 nivo merenja, širina prikaza, poravnanje
+  i32(7); i32(11); i32(4); i32(cols.length * 3);
+  for (const c of cols) { i32(c.measure); i32(c.isStr ? Math.max(8, c.width) : 8); i32(c.isStr ? 0 : 1); }
+  // 7.13 duga imena varijabli
+  const ln = enc.encode(cols.map(c => `${c.short}=${c.name}`).join("\t"));
+  i32(7); i32(13); i32(1); i32(ln.length); push(ln);
+  // 7.20 kodna strana
+  const en = enc.encode("UTF-8");
+  i32(7); i32(20); i32(1); i32(en.length); push(en);
+  // kraj rečnika
+  i32(999); i32(0);
+  // podaci
+  for (const r of ds.rows) for (const c of cols) {
+    if (c.isStr) str(String(r[c.name]), c.segs * 8);
+    else f64(Number(r[c.name]));
+  }
+  const out = new Uint8Array(size);
+  let o = 0;
+  for (const ch of chunks) { out.set(ch, o); o += ch.length; }
+  return out;
+}
+
 /* ---------- Stranica ---------- */
 const $ = id => document.getElementById(id);
 let current = null;
@@ -640,25 +723,28 @@ $("form").addEventListener("submit", e => {
 const downloadsReady = (window.claude && typeof window.claude.use === "function")
   ? window.claude.use("downloads").catch(() => null) : Promise.resolve(null);
 
-async function saveFile(filename, text, mime) {
+async function saveFile(filename, data, mime) {
   const st = $("dl-status");
   const dl = await downloadsReady;
   if (dl) {
-    try { await dl.save({ filename, data: text }); st.textContent = "Sačuvano: " + filename; }
+    try { await dl.save({ filename, data }); st.textContent = "Sačuvano: " + filename; }
     catch (err) {
-      st.textContent = err && err.code === "declined" ? "Preuzimanje je otkazano." : "Preuzimanje ovde nije dostupno. Klikni Kopiraj CSV i nalepi sadržaj u tekstualnu datoteku sa nastavkom .csv.";
+      st.textContent = err && err.code === "declined" ? "Preuzimanje je otkazano."
+        : err && err.code === "rejected_extension" ? "Ovde nije moguće preuzeti .sav fajl. Preuzmi .csv ili otvori sajt predmeta."
+        : "Preuzimanje ovde nije dostupno. Klikni Kopiraj CSV i nalepi sadržaj u tekstualnu datoteku sa nastavkom .csv.";
     }
     return;
   }
-  // Rezervna varijanta kada je stranica postavljena negde drugde (npr. na sajt predmeta)
+  // Kada je stranica postavljena na sopstveni sajt (npr. GitHub Pages), fajl se preuzima direktno
   try {
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+    a.href = URL.createObjectURL(new Blob([data], { type: mime }));
     a.download = filename; document.body.appendChild(a); a.click(); a.remove();
     st.textContent = "Preuzimanje: " + filename + ". Ako se ništa ne desi, klikni Kopiraj CSV.";
   } catch { st.textContent = "Preuzimanje ovde nije dostupno. Klikni Kopiraj CSV."; }
 }
 const base = () => "podaci_" + current.id.replace(/[^A-Za-z0-9_-]/g, "") + "_" + current.code;
+$("dl-sav").addEventListener("click", () => current && saveFile(base() + ".sav", toSAV(current), "application/octet-stream"));
 $("dl-csv").addEventListener("click", () => current && saveFile(base() + ".csv", toCSV(current), "text/csv"));
 $("dl-cb").addEventListener("click", () => current && saveFile(base() + "_sifarnik.txt", toCodebook(current), "text/plain"));
 $("copy").addEventListener("click", async () => {
